@@ -57,6 +57,8 @@ export default function ConsultationPage() {
 
   // サインイン状態の監視
   useEffect(() => {
+    // getUserProfileは依存関係に含めるべきだが、再定義によるループを避けるため
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session)
@@ -85,6 +87,8 @@ export default function ConsultationPage() {
     }
 
     checkSession()
+    // getUserProfileは依存関係に含めるべきだが、再定義によるループを避けるため
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // フォームの入力処理

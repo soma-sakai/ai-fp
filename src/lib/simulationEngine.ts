@@ -65,7 +65,8 @@ function calculateBaseScenario(input: SimulationInput): YearlySimulation[] {
   let currentSavingsAmount = currentSavings;
   let currentInvestments = 0;
   
-  // 毎月の貯蓄額（収入 - 支出）
+  // 毎月の収支差額（収入 - 支出）は計算のみで参照されない
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const monthlySaving = monthlySalary - monthlyExpenses - (hasMortgage ? monthlyMortgage : 0);
   
   // 現在から想定寿命までシミュレーション
@@ -156,7 +157,8 @@ function calculateInvestmentScenario(input: SimulationInput): YearlySimulation[]
   let currentSavingsAmount = currentSavings;
   let currentInvestments = 0;
   
-  // 毎月の貯蓄額（収入 - 支出 - 投資）
+  // 毎月の収支差額（収入 - 支出 - 投資）は計算のみで参照されない
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const monthlySaving = monthlySalary - monthlyExpenses - monthlyInvestment - (hasMortgage ? monthlyMortgage : 0);
   
   // 現在から想定寿命までシミュレーション
@@ -269,6 +271,7 @@ function generateAdvice(input: SimulationInput, baseScenario: YearlySimulation[]
  */
 function generateSummary(input: SimulationInput, baseScenario: YearlySimulation[], savingScenario: YearlySimulation[], investmentScenario: YearlySimulation[]): string {
   const { age, expectedRetirementAge = 65 } = input;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const yearsToRetirement = expectedRetirementAge - age;
   
   const baseEndAssets = baseScenario[baseScenario.length - 1].totalAssets;
