@@ -66,7 +66,7 @@ function calculateBaseScenario(input: SimulationInput): YearlySimulation[] {
   let currentInvestments = 0;
   
   // 毎月の貯蓄額（収入 - 支出）
-  let monthlySaving = monthlySalary - monthlyExpenses - (hasMortgage ? monthlyMortgage : 0);
+  const monthlySaving = monthlySalary - monthlyExpenses - (hasMortgage ? monthlyMortgage : 0);
   
   // 現在から想定寿命までシミュレーション
   while (currentAge <= expectedLifespan) {
@@ -74,7 +74,7 @@ function calculateBaseScenario(input: SimulationInput): YearlySimulation[] {
     const simulationYear = currentYear + yearsPassed;
     
     // 収入計算（退職後は年金想定）
-    let yearlyIncome = currentAge < expectedRetirementAge 
+    const yearlyIncome = currentAge < expectedRetirementAge 
       ? monthlySalary * 12
       : monthlySalary * 0.6 * 12; // 退職後は現役時代の60%と仮定
     
@@ -157,7 +157,7 @@ function calculateInvestmentScenario(input: SimulationInput): YearlySimulation[]
   let currentInvestments = 0;
   
   // 毎月の貯蓄額（収入 - 支出 - 投資）
-  let monthlySaving = monthlySalary - monthlyExpenses - monthlyInvestment - (hasMortgage ? monthlyMortgage : 0);
+  const monthlySaving = monthlySalary - monthlyExpenses - monthlyInvestment - (hasMortgage ? monthlyMortgage : 0);
   
   // 現在から想定寿命までシミュレーション
   while (currentAge <= expectedLifespan) {
@@ -165,7 +165,7 @@ function calculateInvestmentScenario(input: SimulationInput): YearlySimulation[]
     const simulationYear = currentYear + yearsPassed;
     
     // 収入計算（退職後は年金想定）
-    let yearlyIncome = currentAge < expectedRetirementAge 
+    const yearlyIncome = currentAge < expectedRetirementAge 
       ? monthlySalary * 12
       : monthlySalary * 0.6 * 12; // 退職後は現役時代の60%と仮定
     
@@ -220,9 +220,6 @@ function calculateInvestmentScenario(input: SimulationInput): YearlySimulation[]
  * シミュレーション結果からリスクレベルを判定
  */
 function calculateRiskLevel(baseScenario: YearlySimulation[]): string {
-  // 最終年の資産額
-  const finalAssets = baseScenario[baseScenario.length - 1].totalAssets;
-  
   // 資産がマイナスになる年を探す
   const bankruptYear = baseScenario.findIndex(year => year.totalAssets <= 0);
   

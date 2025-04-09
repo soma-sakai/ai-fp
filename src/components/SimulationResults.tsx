@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'react-chartjs-2'
-import { SimulationResult, YearlySimulation } from '../lib/simulationEngine'
+import { SimulationResult, SimulationInput } from '../lib/simulationEngine'
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer'
 import { supabase } from '../lib/supabase'
 
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
 })
 
 // PDFレポート用コンポーネント
-const SimulationPDF = ({ simulationResult, userInfo }: { simulationResult: SimulationResult, userInfo: any }) => (
+const SimulationPDF = ({ simulationResult, userInfo }: { simulationResult: SimulationResult, userInfo: SimulationInput }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <Text style={styles.title}>安心予算シミュレーション結果</Text>
@@ -137,7 +137,7 @@ export default function SimulationResults({
 }: { 
   simulationResult: SimulationResult, 
   userId: string,
-  userInfo: any
+  userInfo: SimulationInput
 }) {
   const [activeTab, setActiveTab] = useState('summary')
   const chartRef = useRef(null)

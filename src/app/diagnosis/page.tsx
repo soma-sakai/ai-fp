@@ -5,9 +5,10 @@ import { supabase } from '../../lib/supabase'
 import Auth from '../../components/Auth'
 import ChatBot from '../../components/ChatBot'
 import DiagnosisResult from '../../components/DiagnosisResult'
+import { Session } from '@supabase/supabase-js'
 
 export default function DiagnosisPage() {
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [diagnosisCompleted, setDiagnosisCompleted] = useState(false)
   
@@ -58,7 +59,14 @@ export default function DiagnosisPage() {
   }, [])
 
   // チャットボットからの診断完了通知（実際のアプリでは実装が必要）
-  const handleDiagnosisComplete = (results: any) => {
+  interface DiagnosisResults {
+    monthlySalary?: number;
+    monthlyExpenses?: number;
+    savings?: number;
+    hasInvestment?: boolean;
+  }
+
+  const handleDiagnosisComplete = (results: DiagnosisResults) => {
     setDiagnosisData({
       userId: session?.user?.id || '',
       monthlySalary: results.monthlySalary || diagnosisData.monthlySalary,

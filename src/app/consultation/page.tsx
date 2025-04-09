@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import Auth from '../../components/Auth'
+import Link from 'next/link'
+import { Session } from '@supabase/supabase-js'
 
 export default function ConsultationPage() {
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [formData, setFormData] = useState({
@@ -19,38 +21,6 @@ export default function ConsultationPage() {
     consultationType: '対面',
     message: ''
   })
-
-  // サインイン状態の監視
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session)
-        setLoading(false)
-        if (session?.user) {
-          // ユーザー情報を取得して名前とメールアドレスを設定
-          getUserProfile(session.user.id)
-        }
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  // ログイン状態の初期チェック
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setSession(session)
-      setLoading(false)
-      if (session?.user) {
-        getUserProfile(session.user.id)
-      }
-    }
-
-    checkSession()
-  }, [])
 
   // ユーザープロファイル情報を取得
   const getUserProfile = async (userId: string) => {
@@ -84,6 +54,38 @@ export default function ConsultationPage() {
       console.error('Error:', error)
     }
   }
+
+  // サインイン状態の監視
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session)
+        setLoading(false)
+        if (session?.user) {
+          // ユーザー情報を取得して名前とメールアドレスを設定
+          getUserProfile(session.user.id)
+        }
+      }
+    )
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  // ログイン状態の初期チェック
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+      setLoading(false)
+      if (session?.user) {
+        getUserProfile(session.user.id)
+      }
+    }
+
+    checkSession()
+  }, [])
 
   // フォームの入力処理
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -312,12 +314,12 @@ export default function ConsultationPage() {
                   担当者より改めてご連絡いたします。
                 </p>
                 <div className="mt-8">
-                  <a
+                  <Link
                     href="/"
                     className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
                     トップページに戻る
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}

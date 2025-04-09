@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { AuthError } from '@supabase/supabase-js'
 
 export default function Auth() {
   const [loading, setLoading] = useState(false)
@@ -41,8 +42,9 @@ export default function Auth() {
         if (error) throw error
         setMessage('登録確認メールを送信しました')
       }
-    } catch (error: any) {
-      setMessage(`エラー: ${error.message}`)
+    } catch (error: unknown) {
+      const authError = error as AuthError
+      setMessage(`エラー: ${authError.message}`)
     } finally {
       setLoading(false)
     }

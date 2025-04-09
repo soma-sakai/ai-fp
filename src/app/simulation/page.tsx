@@ -4,14 +4,15 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import Auth from '../../components/Auth'
 import SimulationResults from '../../components/SimulationResults'
-import { runSimulation, SimulationInput } from '../../lib/simulationEngine'
+import { runSimulation, SimulationInput, SimulationResult } from '../../lib/simulationEngine'
+import { Session } from '@supabase/supabase-js'
 
 export default function SimulationPage() {
-  const [session, setSession] = useState<any>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState(1)
   const [simulationCompleted, setSimulationCompleted] = useState(false)
-  const [simulationResult, setSimulationResult] = useState<any>(null)
+  const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null)
   
   const [formData, setFormData] = useState<SimulationInput>({
     age: 35,
@@ -398,7 +399,7 @@ export default function SimulationPage() {
               </div>
             ) : (
               <SimulationResults 
-                simulationResult={simulationResult}
+                simulationResult={simulationResult!}
                 userId={session.user.id}
                 userInfo={formData}
               />
