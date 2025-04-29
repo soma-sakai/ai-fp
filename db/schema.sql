@@ -3,12 +3,12 @@
 
 -- プロファイル情報テーブル
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT,
   email TEXT,
   phone TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- プロファイル自動更新のためのトリガー関数
@@ -29,48 +29,60 @@ CREATE TRIGGER on_auth_user_created
 -- チャットの対話ログテーブル
 CREATE TABLE IF NOT EXISTS public.chat_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) NOT NULL,
-  message TEXT NOT NULL,
-  is_from_user BOOLEAN NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  session_id TEXT, -- 同一セッションをグループ化する為のID
+  message TEXT, -- メッセージ内容
+  sender TEXT, -- 'bot' または 'user'
+  timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 診断結果テーブル
 CREATE TABLE IF NOT EXISTS public.diagnosis_results (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) NOT NULL,
-  monthly_salary INTEGER NOT NULL,
-  monthly_expenses INTEGER NOT NULL,
-  savings INTEGER NOT NULL,
-  has_investment BOOLEAN NOT NULL,
-  risk_level TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  monthly_salary INTEGER, -- 月収
+  monthly_expenses INTEGER, -- 月間支出
+  savings INTEGER, -- 貯蓄額
+  has_investment BOOLEAN, -- 投資経験の有無
+  result_summary TEXT, -- 結果サマリー
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- FP相談予約テーブル
 CREATE TABLE IF NOT EXISTS public.consultation_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) NOT NULL,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT,
+  email TEXT,
   phone TEXT,
-  preferred_date_1 DATE NOT NULL,
+  preferred_date_1 DATE,
   preferred_date_2 DATE,
   preferred_date_3 DATE,
-  preferred_time TEXT NOT NULL,
-  consultation_type TEXT NOT NULL,
+  preferred_time TEXT, -- '午前', '午後早め', '午後遅め', '夕方以降'
+  consultation_type TEXT, -- '対面', 'オンライン', '電話'
   message TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+  status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'completed', 'canceled'
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ユーザーアクション記録テーブル
 CREATE TABLE IF NOT EXISTS public.user_actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) NOT NULL,
-  action TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  action TEXT, -- 'pdf_download', 'simulation_run', 'book_consultation' など
+  details JSONB, -- アクション詳細（任意）
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 住宅予算診断結果テーブル（新規追加）
+CREATE TABLE IF NOT EXISTS public.budget_diagnoses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  input_data JSONB, -- 入力データ全体（家族構成、収入、支出など）をJSON形式で保存
+  max_line INTEGER, -- MAXラインの予算額（円）
+  reasonable_line INTEGER, -- 妥当ラインの予算額（円）
+  safe_line INTEGER, -- 安全ラインの予算額（円）
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- セキュリティポリシーの設定
@@ -78,49 +90,61 @@ CREATE TABLE IF NOT EXISTS public.user_actions (
 -- プロファイル テーブルのセキュリティポリシー
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "プロファイルの参照は全ユーザー可能" ON public.profiles 
-  FOR SELECT USING (true);
+CREATE POLICY profiles_select_own ON public.profiles 
+  FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "自分のプロファイルのみ変更可能" ON public.profiles 
+CREATE POLICY profiles_insert_own ON public.profiles 
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+CREATE POLICY profiles_update_own ON public.profiles 
   FOR UPDATE USING (auth.uid() = id);
 
 -- チャットログ テーブルのセキュリティポリシー
 ALTER TABLE public.chat_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "自分のチャットログのみ参照可能" ON public.chat_logs 
+CREATE POLICY chat_logs_select_own ON public.chat_logs 
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "自分のチャットログのみ追加可能" ON public.chat_logs 
+CREATE POLICY chat_logs_insert_own ON public.chat_logs 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 診断結果 テーブルのセキュリティポリシー
 ALTER TABLE public.diagnosis_results ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "自分の診断結果のみ参照可能" ON public.diagnosis_results 
+CREATE POLICY diagnosis_results_select_own ON public.diagnosis_results 
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "自分の診断結果のみ追加可能" ON public.diagnosis_results 
+CREATE POLICY diagnosis_results_insert_own ON public.diagnosis_results 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 相談予約 テーブルのセキュリティポリシー
 ALTER TABLE public.consultation_requests ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "自分の相談予約のみ参照可能" ON public.consultation_requests 
+CREATE POLICY consultation_requests_select_own ON public.consultation_requests 
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "自分の相談予約のみ追加可能" ON public.consultation_requests 
+CREATE POLICY consultation_requests_insert_own ON public.consultation_requests 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "自分の相談予約のみ更新可能" ON public.consultation_requests 
+CREATE POLICY consultation_requests_update_own ON public.consultation_requests 
   FOR UPDATE USING (auth.uid() = user_id);
 
 -- ユーザーアクション テーブルのセキュリティポリシー
 ALTER TABLE public.user_actions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "自分のアクションログのみ参照可能" ON public.user_actions 
+CREATE POLICY user_actions_select_own ON public.user_actions 
   FOR SELECT USING (auth.uid() = user_id);
 
-CREATE POLICY "自分のアクションログのみ追加可能" ON public.user_actions 
+CREATE POLICY user_actions_insert_own ON public.user_actions 
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 住宅予算診断結果テーブルのセキュリティポリシー（新規追加）
+ALTER TABLE public.budget_diagnoses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY budget_diagnoses_select_own ON public.budget_diagnoses 
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY budget_diagnoses_insert_own ON public.budget_diagnoses 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- インデックスの作成
