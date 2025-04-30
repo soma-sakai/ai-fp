@@ -74,6 +74,13 @@ const BudgetPDF = ({ results }: { results: any }) => (
       </View>
       
       <View style={styles.section}>
+        <Text style={styles.subtitle}>診断基準</Text>
+        <Text style={styles.text}>基準1: 購入後5年間で貯蓄残高がマイナスにならないこと</Text>
+        <Text style={styles.text}>基準2: 老後資金目標額は1人あたり2,000万円を確保</Text>
+        <Text style={styles.text}>参考指標: 年間返済額が世帯年収の20%以内が「安全ライン」</Text>
+      </View>
+      
+      <View style={styles.section}>
         <Text style={styles.subtitle}>月々の返済額目安</Text>
         <Text style={styles.text}>MAXライン：{Math.round(results.monthlyPayment.max).toLocaleString()}円</Text>
         <Text style={styles.text}>妥当ライン：{Math.round(results.monthlyPayment.reasonable).toLocaleString()}円</Text>
@@ -82,12 +89,9 @@ const BudgetPDF = ({ results }: { results: any }) => (
       
       <View style={styles.section}>
         <Text style={styles.subtitle}>基本情報</Text>
-        <Text style={styles.text}>年齢: {results.inputData.userAge}歳</Text>
-        <Text style={styles.text}>年収: {Number(results.inputData.userIncome).toLocaleString()}円</Text>
-        {results.inputData.hasSpouse === 'はい' && (
-          <Text style={styles.text}>配偶者年収: {Number(results.inputData.spouseIncome).toLocaleString()}円</Text>
-        )}
+        <Text style={styles.text}>世帯年収: {(Number(results.inputData.userIncome) + Number(results.inputData.spouseIncome || 0)).toLocaleString()}円</Text>
         <Text style={styles.text}>現在の貯蓄額: {Number(results.inputData.savings).toLocaleString()}円</Text>
+        <Text style={styles.text}>老後資金目標額: {(results.retirementProjection.targetAmount / 10000).toFixed(0)}万円</Text>
       </View>
       
       <View style={styles.section}>
@@ -129,62 +133,62 @@ export default function HousingBudgetResults({ results }: { results: any }) {
     ]
   }
   
-  // 5年間の貯蓄推移予測（仮のデータ、実際は計算が必要）
-  const generateSavingsData = () => {
-    // 簡易的な貯蓄額推移予測（実際はより詳細な計算が必要）
-    const monthlySaving = (Number(results.inputData.userIncome) + Number(results.inputData.spouseIncome || 0)) / 12 * 0.2
-    const dataMax = []
-    const dataReasonable = []
-    const dataSafe = []
-    
-    let savingsMax = Number(results.inputData.savings)
-    let savingsReasonable = Number(results.inputData.savings)
-    let savingsSafe = Number(results.inputData.savings)
-    
-    // 5年（60ヶ月）のシミュレーション
-    for (let i = 0; i <= 60; i++) {
-      // 各ライン別の毎月の貯蓄残高を計算
-      savingsMax = savingsMax + monthlySaving - results.monthlyPayment.max
-      savingsReasonable = savingsReasonable + monthlySaving - results.monthlyPayment.reasonable
-      savingsSafe = savingsSafe + monthlySaving - results.monthlyPayment.safe
-      
-      // 6ヶ月ごとにデータを記録
-      if (i % 6 === 0) {
-        dataMax.push(Math.max(0, savingsMax))
-        dataReasonable.push(Math.max(0, savingsReasonable))
-        dataSafe.push(Math.max(0, savingsSafe))
+  // 5年間の貯蓄推移予測
+  const savingsChartData = {
+    labels: ['現在', '6ヶ月後', '1年後', '1年半後', '2年後', '2年半後', '3年後', '3年半後', '4年後', '4年半後', '5年後'],
+    datasets: [
+      {
+        label: 'MAXライン',
+        data: results.savingsSimulation.maxLineSavings,
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        tension: 0.1
+      },
+      {
+        label: '妥当ライン',
+        data: results.savingsSimulation.reasonableLineSavings,
+        borderColor: 'rgb(255, 206, 86)',
+        backgroundColor: 'rgba(255, 206, 86, 0.5)',
+        tension: 0.1
+      },
+      {
+        label: '安全ライン',
+        data: results.savingsSimulation.safeLineSavings,
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        tension: 0.1
       }
-    }
-    
-    return {
-      labels: ['現在', '6ヶ月後', '1年後', '1年半後', '2年後', '2年半後', '3年後', '3年半後', '4年後', '4年半後', '5年後'],
-      datasets: [
-        {
-          label: 'MAXライン',
-          data: dataMax,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.5)',
-          tension: 0.1
-        },
-        {
-          label: '妥当ライン',
-          data: dataReasonable,
-          borderColor: 'rgb(255, 206, 86)',
-          backgroundColor: 'rgba(255, 206, 86, 0.5)',
-          tension: 0.1
-        },
-        {
-          label: '安全ライン',
-          data: dataSafe,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-          tension: 0.1
-        }
-      ]
-    }
+    ]
   }
   
-  const savingsChartData = generateSavingsData()
+  // 老後資金シミュレーション
+  const retirementFundData = {
+    labels: ['目標額', 'MAXラインの場合', '妥当ラインの場合', '安全ラインの場合'],
+    datasets: [
+      {
+        label: '老後資金（万円）',
+        data: [
+          Math.round(results.retirementProjection.targetAmount / 10000),
+          Math.round(results.retirementProjection.projectedWithMaxLine / 10000),
+          Math.round(results.retirementProjection.projectedWithReasonableLine / 10000),
+          Math.round(results.retirementProjection.projectedWithSafeLine / 10000)
+        ],
+        backgroundColor: [
+          'rgba(153, 102, 255, 0.7)',
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(75, 192, 192, 0.7)'
+        ],
+        borderColor: [
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  }
   
   // PDFダウンロードを記録
   const handleDownloadPDF = async () => {
@@ -239,6 +243,12 @@ export default function HousingBudgetResults({ results }: { results: any }) {
         >
           貯蓄推移
         </button>
+        <button
+          className={`px-4 py-2 ${activeTab === 'retirement' ? 'border-b-2 border-green-500 text-green-500' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('retirement')}
+        >
+          老後資金
+        </button>
       </div>
       
       {/* 概要タブ */}
@@ -268,13 +278,16 @@ export default function HousingBudgetResults({ results }: { results: any }) {
               あなたの住宅予算の目安は上記の3つのラインで表されます。これらの金額から頭金
               {Number(results.inputData.downPayment).toLocaleString()}円を引いた額が、住宅ローンの借入目安となります。
             </p>
+            <p className="mb-2">
+              この診断結果は以下の2つの重要な基準に基づいて算出されています：
+            </p>
             <ul className="list-disc pl-5 space-y-1">
-              <li>MAXライン：これ以上の予算は家計を圧迫するリスクが高まります</li>
-              <li>妥当ライン：バランスの取れた予算で家計にも余裕があります</li>
-              <li>安全ライン：将来の変化にも対応できる余裕のある予算です</li>
+              <li><span className="font-semibold">基準1：</span>購入後5年間で貯蓄残高がマイナスにならないこと</li>
+              <li><span className="font-semibold">基準2：</span>老後資金目標額は1人あたり2,000万円を確保</li>
             </ul>
             <p className="mt-2 text-sm">
-              ※この診断は「購入後5年間で貯蓄残高がマイナスにならないこと」「老後資金目標額は1人あたり2,000万円を確保」という基準に基づいています。
+              安全ラインは、年間返済額が世帯年収の20%以内に収まり、両方の基準を満たす予算です。
+              妥当ラインと最大ラインも同様の基準で算出されていますが、それぞれ返済負担率が25%と30%と高くなっています。
             </p>
           </div>
           
@@ -379,11 +392,11 @@ export default function HousingBudgetResults({ results }: { results: any }) {
             />
           </div>
           <div className="mt-4 bg-blue-50 p-4 rounded">
-            <h4 className="font-semibold mb-2">ポイント</h4>
+            <h4 className="font-semibold mb-2">返済負担率の目安</h4>
             <p>
-              住宅ローンの返済額は、家計全体のバランスの中で適切に設定することが重要です。
-              返済負担率が高すぎると、日常の生活費や将来のための貯蓄が圧迫され、
-              予期せぬ出費が発生した場合に対応できなくなるリスクがあります。
+              住宅ローンの返済負担率（年間返済額÷年収）は、一般的には20%以内が安全とされています。
+              25%までは一般的な範囲内、30%を超えると生活が圧迫される可能性が高まります。
+              特に、子育て世代や将来的に収入減が見込まれる場合は、返済負担率を低めに設定することをおすすめします。
             </p>
           </div>
         </div>
@@ -395,7 +408,7 @@ export default function HousingBudgetResults({ results }: { results: any }) {
           <h3 className="text-xl font-semibold mb-4">5年間の貯蓄推移予測</h3>
           <p className="mb-4">
             このグラフは住宅購入後5年間の貯蓄残高の推移予測を示しています。
-            住宅ローン返済後も十分な貯蓄が維持できるかをチェックしましょう。
+            基準1「購入後5年間で貯蓄残高がマイナスにならないこと」を満たしているかをチェックできます。
           </p>
           <div className="h-96">
             <Line
@@ -431,11 +444,64 @@ export default function HousingBudgetResults({ results }: { results: any }) {
             />
           </div>
           <div className="mt-4 bg-yellow-50 p-4 rounded">
-            <h4 className="font-semibold mb-2">判断基準</h4>
+            <h4 className="font-semibold mb-2">安心の貯蓄推移とは</h4>
             <p>
-              購入後5年間で貯蓄残高がマイナスになっていないことが重要な判断基準です。
-              緊急時や将来のための資金が確保できているか、グラフの推移から確認してください。
-              安全ラインであれば、十分な貯蓄を維持しながら住宅購入が可能です。
+              住宅購入後の5年間は、予期せぬ出費や収入の変動リスクが高い期間です。
+              この期間に貯蓄残高がマイナスになると、生活が圧迫され、住宅ローンの返済が滞るリスクが高まります。
+              安全ラインであれば、十分な貯蓄を維持しながら住宅購入が可能といえます。
+            </p>
+          </div>
+        </div>
+      )}
+      
+      {/* 老後資金タブ */}
+      {activeTab === 'retirement' && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">老後資金シミュレーション</h3>
+          <p className="mb-4">
+            このグラフは基準2「老後資金目標額は1人あたり2,000万円」が達成できるかを示しています。
+            各予算ラインでの住宅購入後も、退職時までに目標額を達成できるかをチェックできます。
+          </p>
+          <div className="h-96">
+            <Bar
+              data={retirementFundData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  title: {
+                    display: true,
+                    text: '老後資金予測（万円）'
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(context) {
+                        return `${context.label}: ${context.parsed.y.toLocaleString()}万円`;
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    title: {
+                      display: true,
+                      text: '金額（万円）'
+                    }
+                  }
+                }
+              }}
+            />
+          </div>
+          <div className="mt-4 bg-green-50 p-4 rounded">
+            <h4 className="font-semibold mb-2">老後資金の考え方</h4>
+            <p>
+              老後の生活には、公的年金に加えて一定の自己資金が必要です。
+              1人あたり2,000万円（夫婦なら4,000万円）は目安の一つとされています。
+              住宅ローンの返済と並行して、計画的に老後資金を貯めることが重要です。
+              安全ラインであれば、住宅ローンの返済をしながらも老後資金の確保が可能です。
             </p>
           </div>
         </div>

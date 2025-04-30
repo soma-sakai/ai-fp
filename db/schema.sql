@@ -22,9 +22,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 新規ユーザー作成時にプロファイルも作成するトリガー
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+-- トリガーが存在しない場合のみ作成
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'on_auth_user_created') THEN
+    CREATE TRIGGER on_auth_user_created
+      AFTER INSERT ON auth.users
+      FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+  END IF;
+END
+$$;
 
 -- チャットの対話ログテーブル
 CREATE TABLE IF NOT EXISTS public.chat_logs (
@@ -147,10 +154,31 @@ CREATE POLICY budget_diagnoses_select_own ON public.budget_diagnoses
 CREATE POLICY budget_diagnoses_insert_own ON public.budget_diagnoses 
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- インデックスの作成
-CREATE INDEX idx_chat_logs_user_id ON public.chat_logs(user_id);
-CREATE INDEX idx_diagnosis_results_user_id ON public.diagnosis_results(user_id);
-CREATE INDEX idx_consultation_requests_user_id ON public.consultation_requests(user_id);
-CREATE INDEX idx_consultation_requests_status ON public.consultation_requests(status);
-CREATE INDEX idx_user_actions_user_id ON public.user_actions(user_id);
-CREATE INDEX idx_user_actions_action ON public.user_actions(action); 
+-- インデックスの作成（存在しない場合のみ）
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_chat_logs_user_id') THEN
+    CREATE INDEX idx_chat_logs_user_id ON public.chat_logs(user_id);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_diagnosis_results_user_id') THEN
+    CREATE INDEX idx_diagnosis_results_user_id ON public.diagnosis_results(user_id);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_consultation_requests_user_id') THEN
+    CREATE INDEX idx_consultation_requests_user_id ON public.consultation_requests(user_id);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_consultation_requests_status') THEN
+    CREATE INDEX idx_consultation_requests_status ON public.consultation_requests(status);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_user_actions_user_id') THEN
+    CREATE INDEX idx_user_actions_user_id ON public.user_actions(user_id);
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_user_actions_action') THEN
+    CREATE INDEX idx_user_actions_action ON public.user_actions(action);
+  END IF;
+END
+$$; 

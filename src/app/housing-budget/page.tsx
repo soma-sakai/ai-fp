@@ -59,9 +59,10 @@ export default function HousingBudgetPage() {
   return (
     <div className="min-h-screen p-4 sm:p-8 bg-gray-50">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">安心住宅予算AI診断</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">安心住宅予算AI診断＆シミュレーション</h1>
         <p className="text-center mb-8 text-gray-600">
-          詳しく分析して、あなたに最適な住宅予算を3つのラインで提案します
+          詳しく分析して、あなたに最適な住宅予算を3つのラインで提案します。<br />
+          家計シミュレーションで5年間の貯蓄推移と老後資金も確認できます。
         </p>
         
         {!session ? (

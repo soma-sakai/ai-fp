@@ -95,18 +95,18 @@ export default function HomePage() {
       {/* 機能セクション */}
       <div className="py-16 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">3つの便利な機能</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">便利な機能</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-4xl">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="bg-indigo-100 rounded-full w-16 h-16 flex items-center justify-center mb-4 mx-auto">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-center text-gray-800">住宅予算診断</h3>
+              <h3 className="text-xl font-semibold mb-3 text-center text-gray-800">住宅予算診断＆シミュレーション</h3>
               <p className="text-gray-600 text-center">
-                チャット形式で簡単に回答するだけで、あなたに最適な住宅予算の目安を3つのラインで提案します。
+                チャット形式で簡単に回答するだけで、あなたに最適な住宅予算の目安を3つのラインで提案。将来の収支や貯蓄残高の推移シミュレーションも同時に確認できます。
               </p>
               <div className="mt-4 text-center">
                 <Link
@@ -114,26 +114,6 @@ export default function HomePage() {
                   className="text-indigo-600 font-medium hover:text-indigo-800"
                 >
                   診断を始める →
-                </Link>
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="bg-indigo-100 rounded-full w-16 h-16 flex items-center justify-center mb-4 mx-auto">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-3 text-center text-gray-800">家計シミュレーション</h3>
-              <p className="text-gray-600 text-center">
-                将来の収支や貯蓄残高の推移を予測。住宅購入後も安心の家計プランを提案します。
-              </p>
-              <div className="mt-4 text-center">
-                <Link
-                  href="/simulation"
-                  className="text-indigo-600 font-medium hover:text-indigo-800"
-                >
-                  シミュレーションする →
                 </Link>
               </div>
             </div>
