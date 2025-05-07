@@ -18,6 +18,11 @@ console.log('Supabase環境設定:', {
   APIキー設定あり: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 });
 
+// 環境変数がセットされているかチェック
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  console.warn('Supabase環境変数が設定されていません。.env.localファイルを確認してください。')
+}
+
 // 実際のSupabaseクライアント（環境変数が設定されている場合）
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -218,4 +223,4 @@ export const getChatbotProgressByEmail = async (email: string) => {
 // すべての診断結果を取得
 export const getAllDiagnosisResults = async () => {
   return getData('diagnosis_results');
-}; 
+};

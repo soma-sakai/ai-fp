@@ -28,17 +28,17 @@ const Checkbox: React.FC<CheckboxProps> = ({
             checked={checked}
             onChange={onChange}
             required={required}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="h-4 w-4 text-gray-800 border-gray-300 rounded focus:ring-gray-500"
           />
         </div>
         <div className="ml-3 text-sm">
           <label htmlFor={name} className="text-gray-700">
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-gray-800 ml-1">*</span>}
           </label>
         </div>
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-gray-800">{error}</p>}
     </div>
   );
 };

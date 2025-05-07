@@ -303,11 +303,11 @@ const DiagnosisSteps: React.FC = () => {
             >
               <div 
                 className={`rounded-full h-8 w-8 flex items-center justify-center mx-auto mb-2 
-                  ${index <= currentIndex ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}
+                  ${index <= currentIndex ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-600'}`}
               >
                 {index + 1}
               </div>
-              <div className={`text-sm ${index <= currentIndex ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
+              <div className={`text-sm ${index <= currentIndex ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>
                 {stepTitles[step]}
               </div>
             </div>
@@ -318,7 +318,7 @@ const DiagnosisSteps: React.FC = () => {
             <React.Fragment key={`line-${step}`}>
               {index > 0 && (
                 <div 
-                  className={`h-1 flex-1 ${index <= currentIndex ? 'bg-blue-600' : 'bg-gray-200'}`}
+                  className={`h-1 flex-1 ${index <= currentIndex ? 'bg-gray-800' : 'bg-gray-200'}`}
                 />
               )}
               {index < steps.length - 1 && (

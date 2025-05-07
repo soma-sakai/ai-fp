@@ -32,7 +32,7 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className="mb-4">
       <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} {required && <span className="text-gray-800">*</span>}
       </label>
       <input
         id={name}
@@ -46,11 +46,11 @@ const Input: React.FC<InputProps> = ({
         max={max}
         step={step}
         className={`w-full px-3 py-2 border ${
-          error ? 'border-red-500' : 'border-gray-300'
-        } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+          error ? 'border-gray-800' : 'border-gray-300'
+        } rounded-md shadow-sm focus:outline-none focus:ring-gray-500 focus:border-gray-800`}
       />
       {helpText && <p className="mt-1 text-sm text-gray-500">{helpText}</p>}
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-gray-800">{error}</p>}
     </div>
   );
 };
