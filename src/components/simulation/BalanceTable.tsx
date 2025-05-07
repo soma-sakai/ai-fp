@@ -32,25 +32,46 @@ interface BalanceTableProps {
   }[];
 }
 
+type SimulationDataItem = BalanceTableProps['simulationData'][0];
+
 const BalanceTable: React.FC<BalanceTableProps> = ({ simulationData }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortKey, setSortKey] = useState<string>('year');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
+  // 安全にネストしたプロパティにアクセスする関数
+  const getNestedValue = (obj: SimulationDataItem, path: string): number => {
+    if (!path.includes('.')) {
+      // 直接プロパティの場合
+      const value = obj[path as keyof SimulationDataItem];
+      return typeof value === 'number' ? value : 0;
+    }
+    
+    // ネストしたプロパティの場合
+    const [parent, child] = path.split('.');
+    const parentObj = obj[parent as keyof SimulationDataItem];
+    
+    if (!parentObj || typeof parentObj !== 'object') {
+      return 0;
+    }
+    
+    // 親オブジェクトの型に応じてアクセス
+    if (parent === 'expenses') {
+      return (obj.expenses[child] || 0) as number;
+    } else if (parent === 'investment' && obj.investment) {
+      return (child === 'balance' || child === 'yield') ? (obj.investment[child] || 0) : 0;
+    } else if (parent === 'mortgage' && obj.mortgage) {
+      return (child === 'principal' || child === 'interest') ? (obj.mortgage[child] || 0) : 0;
+    }
+    
+    return 0;
+  };
+  
   // ソートロジック
   const sortedData = [...simulationData].sort((a, b) => {
-    let aValue, bValue;
-    
-    // ネストしたプロパティへのアクセス
-    if (sortKey.includes('.')) {
-      const [parent, child] = sortKey.split('.');
-      aValue = a[parent as keyof typeof a]?.[child as any] || 0;
-      bValue = b[parent as keyof typeof b]?.[child as any] || 0;
-    } else {
-      aValue = a[sortKey as keyof typeof a] || 0;
-      bValue = b[sortKey as keyof typeof b] || 0;
-    }
+    const aValue = getNestedValue(a, sortKey);
+    const bValue = getNestedValue(b, sortKey);
     
     return sortOrder === 'asc' ? 
       (aValue > bValue ? 1 : -1) : 
@@ -104,7 +125,7 @@ const BalanceTable: React.FC<BalanceTableProps> = ({ simulationData }) => {
   };
   
   // アラートアイコン表示
-  const renderAlertIcon = (data: typeof simulationData[0]) => {
+  const renderAlertIcon = (data: SimulationDataItem) => {
     if (data.alerts && data.alerts.length > 0) {
       return (
         <div className="relative group">
