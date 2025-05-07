@@ -59,8 +59,8 @@ const FinancialOverviewChart: React.FC<FinancialOverviewChartProps> = ({ simulat
       {
         label: '預貯金',
         data: savingsData,
-        borderColor: 'rgba(54, 162, 235, 1)',
-        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+        borderColor: 'rgba(80, 80, 80, 1)',
+        backgroundColor: 'rgba(80, 80, 80, 0.1)',
         tension: 0.2,
         fill: true,
         pointRadius: 0,
@@ -70,8 +70,8 @@ const FinancialOverviewChart: React.FC<FinancialOverviewChartProps> = ({ simulat
       {
         label: '投資資産',
         data: investmentData,
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+        borderColor: 'rgba(120, 120, 120, 1)',
+        backgroundColor: 'rgba(120, 120, 120, 0.1)',
         tension: 0.2,
         fill: true,
         pointRadius: 0,
@@ -81,8 +81,8 @@ const FinancialOverviewChart: React.FC<FinancialOverviewChartProps> = ({ simulat
       {
         label: '総資産',
         data: totalAssetData,
-        borderColor: 'rgba(153, 102, 255, 1)',
-        backgroundColor: 'rgba(153, 102, 255, 0)',
+        borderColor: 'rgba(40, 40, 40, 1)',
+        backgroundColor: 'rgba(40, 40, 40, 0)',
         borderWidth: 3,
         tension: 0.2,
         pointRadius: simulationData.map((_, i) => i % 5 === 0 ? 3 : 0), // 5年ごとにポイント表示
@@ -93,8 +93,8 @@ const FinancialOverviewChart: React.FC<FinancialOverviewChartProps> = ({ simulat
       {
         label: '年収',
         data: incomeData,
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0)',
+        borderColor: 'rgba(160, 160, 160, 1)',
+        backgroundColor: 'rgba(160, 160, 160, 0)',
         borderWidth: 2,
         tension: 0.1,
         pointRadius: 0,

@@ -4,130 +4,12 @@ import { useState, useRef } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { SimulationResult, SimulationInput } from '../lib/simulationEngine'
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer'
 import { supabase } from '../lib/supabase'
+import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 
 // Chart.jsの設定
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
-
-// PDFスタイルの定義
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 30
-  },
-  section: {
-    margin: 10,
-    padding: 10
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  subtitle: {
-    fontSize: 18,
-    marginTop: 15,
-    marginBottom: 10
-  },
-  text: {
-    fontSize: 12,
-    marginBottom: 5
-  },
-  bold: {
-    fontWeight: 'bold'
-  },
-  table: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginTop: 10,
-    marginBottom: 10
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#DDDDDD',
-    paddingBottom: 3,
-    paddingTop: 3
-  },
-  tableHeader: {
-    fontWeight: 'bold'
-  },
-  tableCol: {
-    flex: 1,
-    fontSize: 10
-  }
-})
-
-// PDFレポート用コンポーネント
-const SimulationPDF = ({ simulationResult, userInfo }: { simulationResult: SimulationResult, userInfo: SimulationInput }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.title}>安心予算シミュレーション結果</Text>
-      
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>診断結果: {simulationResult.riskLevel}</Text>
-        <Text style={styles.text}>{simulationResult.summaryText}</Text>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>あなたへのアドバイス</Text>
-        {simulationResult.advicePoints.map((advice, index) => (
-          <Text key={index} style={styles.text}>• {advice}</Text>
-        ))}
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>基本情報</Text>
-        <Text style={styles.text}>年齢: {userInfo.age}歳</Text>
-        <Text style={styles.text}>毎月の収入: {userInfo.monthlySalary.toLocaleString()}円</Text>
-        <Text style={styles.text}>毎月の支出: {userInfo.monthlyExpenses.toLocaleString()}円</Text>
-        <Text style={styles.text}>月間収支: {(userInfo.monthlySalary - userInfo.monthlyExpenses).toLocaleString()}円</Text>
-        <Text style={styles.text}>現在の貯蓄額: {userInfo.currentSavings.toLocaleString()}円</Text>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>シミュレーション結果（主要年齢時点）</Text>
-        
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={styles.tableCol}>年齢</Text>
-            <Text style={styles.tableCol}>西暦</Text>
-            <Text style={styles.tableCol}>現状維持（万円）</Text>
-            <Text style={styles.tableCol}>支出削減（万円）</Text>
-            <Text style={styles.tableCol}>投資実行（万円）</Text>
-          </View>
-          
-          {/* 現在、65歳、90歳の3時点をハイライト表示 */}
-          {[0, 
-            Math.min(simulationResult.baseScenario.findIndex(y => y.age >= 65), simulationResult.baseScenario.length - 1),
-            simulationResult.baseScenario.length - 1
-          ].map((index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.tableCol}>{simulationResult.baseScenario[index].age}歳</Text>
-              <Text style={styles.tableCol}>{simulationResult.baseScenario[index].year}年</Text>
-              <Text style={styles.tableCol}>
-                {Math.floor(simulationResult.baseScenario[index].totalAssets / 10000)}
-              </Text>
-              <Text style={styles.tableCol}>
-                {Math.floor(simulationResult.savingScenario[index].totalAssets / 10000)}
-              </Text>
-              <Text style={styles.tableCol}>
-                {Math.floor(simulationResult.investmentScenario[index].totalAssets / 10000)}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-      
-      <View style={styles.section}>
-        <Text style={styles.text}>※このシミュレーションは現在の状況から予測されるものであり、将来の確実な予測ではありません。</Text>
-        <Text style={styles.text}>※より詳細な分析や個別のアドバイスについては、FP相談をご利用ください。</Text>
-      </View>
-    </Page>
-  </Document>
-)
 
 // シミュレーション結果表示コンポーネント
 export default function SimulationResults({ 
@@ -141,6 +23,8 @@ export default function SimulationResults({
 }) {
   const [activeTab, setActiveTab] = useState('summary')
   const chartRef = useRef(null)
+  const resultRef = useRef<HTMLDivElement>(null)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
   // 年齢データの抽出
   const ages = simulationResult.baseScenario.map(data => `${data.age}歳`)
@@ -189,18 +73,79 @@ export default function SimulationResults({
     ],
   }
 
-  // PDFダウンロードを記録
+  // PDFダウンロード処理
   const handleDownloadPDF = async () => {
     try {
+      if (!resultRef.current) return;
+      
+      setIsGeneratingPdf(true);
+      
+      // ユーザーアクションを記録
       await supabase.from('user_actions').insert({
         user_id: userId,
         action: 'pdf_download',
         created_at: new Date().toISOString()
-      })
+      });
+      
+      // 現在のタブを一時保存
+      const originalTab = activeTab;
+      // サマリータブに切り替え
+      setActiveTab('summary');
+      
+      // 少し待ってDOM更新を確実にする
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // HTML2Canvasでキャンバスに変換
+      const canvas = await html2canvas(resultRef.current, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      
+      // キャンバスのサイズを取得
+      const imgWidth = 210; // A4幅（mm）
+      const pageHeight = 297; // A4高さ（mm）
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // 複数ページに分割する必要があるか確認
+      const pdfDoc = new jsPDF('p', 'mm', 'a4');
+      let position = 0;
+      
+      // 1ページに収まらない場合は複数ページに分割
+      while (position < imgHeight) {
+        // 新しいページでない場合（最初のページを除く）
+        if (position > 0) {
+          pdfDoc.addPage();
+        }
+        
+        // データURLからイメージを取得
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // 現在のページにイメージの一部を追加
+        pdfDoc.addImage(
+          imgData, 'JPEG', 
+          0, -position, // x, y座標
+          imgWidth, imgHeight // 幅、高さ
+        );
+        
+        // 次のページのための位置を更新
+        position += pageHeight;
+      }
+      
+      // PDFをダウンロード
+      pdfDoc.save("安心予算シミュレーション結果.pdf");
+      
+      // 元のタブに戻す
+      setActiveTab(originalTab);
+      
     } catch (error) {
-      console.error('Error logging PDF download:', error)
+      console.error('PDFの生成中にエラーが発生しました:', error);
+      alert('PDFの生成中にエラーが発生しました。もう一度お試しください。');
+    } finally {
+      setIsGeneratingPdf(false);
     }
-  }
+  };
   
   // FP相談予約ボタンクリック時の処理
   const handleBookConsultation = async () => {
@@ -209,17 +154,17 @@ export default function SimulationResults({
         user_id: userId,
         action: 'book_consultation',
         created_at: new Date().toISOString()
-      })
+      });
       
       // ここでは単純にログを記録しますが、実際の予約ページへの遷移などを追加
-      alert('FP相談予約フォームに移動します')
+      alert('FP相談予約フォームに移動します');
     } catch (error) {
-      console.error('Error logging consultation booking:', error)
+      console.error('Error logging consultation booking:', error);
     }
-  }
+  };
 
   return (
-    <div className="max-w-5xl mx-auto p-4">
+    <div className="max-w-5xl mx-auto p-4" ref={resultRef}>
       <h2 className="text-2xl font-bold mb-6 text-center">シミュレーション結果</h2>
       
       {/* タブナビゲーション */}
@@ -272,16 +217,21 @@ export default function SimulationResults({
           </div>
           
           <div className="flex justify-center space-x-4 mt-8">
-            <PDFDownloadLink 
-              document={<SimulationPDF simulationResult={simulationResult} userInfo={userInfo} />} 
-              fileName="安心予算シミュレーション結果.pdf"
-              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <button
+              className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={handleDownloadPDF}
+              disabled={isGeneratingPdf}
             >
-              {({ loading }: { loading: boolean }) =>
-                loading ? 'PDF生成中...' : 'PDFレポートをダウンロード'
-              }
-            </PDFDownloadLink>
+              {isGeneratingPdf ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  PDF生成中...
+                </span>
+              ) : 'PDFレポートをダウンロード'}
+            </button>
             
             <button
               className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"

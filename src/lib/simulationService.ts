@@ -30,6 +30,17 @@ export async function runSimulation(diagnosisResultId: string): Promise<{ simula
   try {
     console.log('シミュレーション実行API呼び出し開始 - 診断結果ID:', diagnosisResultId);
     
+    // 常にフォールバック処理を使用
+    console.log('フォールバック: 診断結果IDをシミュレーションIDとして返します');
+    return { 
+      simulationId: diagnosisResultId, 
+      error: { 
+        message: 'フォールバック使用: 診断結果IDを使用',
+        type: 'fallback_used'
+      } 
+    };
+    
+    /* 以下のコードは現在使用しない
     // まず診断結果データを取得（シミュレーション実行に先立ってデータ検証）
     const { data: diagnosisData, error: diagnosisError } = await supabase
       .from('diagnosis_results')
@@ -62,6 +73,7 @@ export async function runSimulation(diagnosisResultId: string): Promise<{ simula
         type: 'fallback_used'
       } 
     };
+    */
     
     /* Edge Functions が設定されている場合は以下を使用
     const { data, error } = await supabase.functions.invoke('simulation-api/run-simulation', {

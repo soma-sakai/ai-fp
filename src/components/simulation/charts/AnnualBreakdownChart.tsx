@@ -49,12 +49,12 @@ const AnnualBreakdownChart: React.FC<AnnualBreakdownChartProps> = ({ simulationD
   
   // 支出項目の色定義
   const expenseColors = {
-    housing: 'rgba(54, 162, 235, 0.8)',   // 住宅費：青
-    education: 'rgba(153, 102, 255, 0.8)', // 教育費：紫
-    living: 'rgba(255, 159, 64, 0.8)',    // 生活費：オレンジ
-    insurance: 'rgba(75, 192, 192, 0.8)',  // 保険料：緑
-    tax: 'rgba(255, 99, 132, 0.8)',      // 税金：赤
-    other: 'rgba(201, 203, 207, 0.8)'     // その他：グレー
+    housing: 'rgba(50, 50, 50, 0.8)',   // 住宅費：ダークグレー
+    education: 'rgba(90, 90, 90, 0.8)', // 教育費：グレー
+    living: 'rgba(130, 130, 130, 0.8)',    // 生活費：ミディアムグレー
+    insurance: 'rgba(170, 170, 170, 0.8)',  // 保険料：ライトグレー
+    tax: 'rgba(210, 210, 210, 0.8)',      // 税金：ベリーライトグレー
+    other: 'rgba(230, 230, 230, 0.8)'     // その他：アルモストホワイト
   };
   
   // データの整形
@@ -99,8 +99,8 @@ const AnnualBreakdownChart: React.FC<AnnualBreakdownChartProps> = ({ simulationD
     type: 'line' as const,
     label: '年収',
     data: decadeData.map(data => Math.round(data.income / 10000)),
-    borderColor: 'rgba(255, 99, 132, 1)',
-    backgroundColor: 'rgba(255, 99, 132, 0)',
+    borderColor: 'rgba(40, 40, 40, 1)',
+    backgroundColor: 'rgba(40, 40, 40, 0)',
     borderWidth: 2,
     tension: 0.1,
     pointRadius: 3,

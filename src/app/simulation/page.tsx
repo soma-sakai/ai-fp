@@ -4,11 +4,11 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 // シミュレーションページを住宅予算診断ページへリダイレクト
-export default function SimulationRedirectPage() {
+export default function SimulationPage() {
   const router = useRouter()
   
   useEffect(() => {
-    router.replace('/housing-budget')
+    router.replace('/diagnosis')
   }, [router])
   
   return (

@@ -33,7 +33,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
           annualIncome: formData.annualIncome || 5000000,
           savings: formData.savings || 5000000,
           hasSpouse: formData.hasSpouse || 'いいえ',
-          retirementAge: formData.retirementAge || '65歳'
+          spouseIncome: formData.spouseIncome || 0,
+          retirementAge: formData.retirementAge || '65歳',
+          childrenCount: formData.childrenCount || '0人',
+          childrenAges: formData.childrenAges || ''
         });
         setSimulationData(simulationData);
         setLoading(false);
@@ -77,7 +80,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
               annualIncome: formData.annualIncome || 5000000,
               savings: formData.savings || 5000000,
               hasSpouse: formData.hasSpouse || 'いいえ',
-              retirementAge: formData.retirementAge || '65歳'
+              spouseIncome: formData.spouseIncome || 0,
+              retirementAge: formData.retirementAge || '65歳',
+              childrenCount: formData.childrenCount || '0人',
+              childrenAges: formData.childrenAges || ''
             });
             setSimulationData(fallbackData);
             setLoading(false);
@@ -88,15 +94,49 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
           console.log('診断結果データからシミュレーション生成:', {
             age: diagnosisData.age || formData.age || 30,
             annual_income: diagnosisData.annual_income,
-            savings: diagnosisData.savings
+            savings: diagnosisData.savings,
+            // デバッグ用に追加のデータを表示
+            additional_data: diagnosisData.additional_data ? true : false,
+            chatbot_data: diagnosisData.additional_data?.chatbot_data ? true : false
           });
           
+          // 診断結果データからチャットボットデータを抽出（存在する場合）
+          let chatbotData: Record<string, any> = {};
+          try {
+            // additional_dataが存在するか確認
+            if (diagnosisData.additional_data) {
+              // 文字列の場合はJSON変換
+              if (typeof diagnosisData.additional_data === 'string') {
+                const parsed = JSON.parse(diagnosisData.additional_data);
+                chatbotData = parsed.chatbot_data || {};
+              } else {
+                // オブジェクトの場合は直接取得
+                chatbotData = diagnosisData.additional_data.chatbot_data || {};
+              }
+            }
+            // legacy: chatbot_dataフィールドの確認（直接存在する場合）
+            else if (diagnosisData.chatbot_data) {
+              chatbotData = typeof diagnosisData.chatbot_data === 'string'
+                ? JSON.parse(diagnosisData.chatbot_data)
+                : diagnosisData.chatbot_data;
+            }
+            console.log('抽出されたチャットボットデータ:', chatbotData);
+          } catch (parseError) {
+            console.error('チャットボットデータの解析に失敗:', parseError);
+            // 解析に失敗した場合は空オブジェクトを使用
+            chatbotData = {};
+          }
+          
+          // チャットボットから収集した追加データを使用してシミュレーションを生成
           const diagnosisSimulation = generateLifetimeSimulation({
             age: diagnosisData.age || formData.age || 30,
-            annualIncome: diagnosisData.annual_income || formData.annualIncome || 5000000,
-            savings: diagnosisData.savings || formData.savings || 5000000,
-            hasSpouse: formData.hasSpouse || 'いいえ',
-            retirementAge: formData.retirementAge || '65歳'
+            annualIncome: diagnosisData.annual_income || chatbotData.annualIncome || formData.annualIncome || 5000000,
+            savings: diagnosisData.savings || chatbotData.savings || formData.savings || 5000000,
+            hasSpouse: chatbotData.hasSpouse || formData.hasSpouse || 'いいえ',
+            spouseIncome: chatbotData.spouseIncome || formData.spouseIncome || 0,
+            retirementAge: chatbotData.retirementAge || formData.retirementAge || '65歳',
+            childrenCount: chatbotData.childrenCount || formData.childrenCount || '0人',
+            childrenAges: chatbotData.childrenAges || formData.childrenAges || ''
           });
           
           console.log('診断結果データから生成したシミュレーション - データ長:', diagnosisSimulation.length);
@@ -116,7 +156,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
             annualIncome: formData.annualIncome || 5000000,
             savings: formData.savings || 5000000,
             hasSpouse: formData.hasSpouse || 'いいえ',
-            retirementAge: formData.retirementAge || '65歳'
+            spouseIncome: formData.spouseIncome || 0,
+            retirementAge: formData.retirementAge || '65歳',
+            childrenCount: formData.childrenCount || '0人',
+            childrenAges: formData.childrenAges || ''
           });
           
           console.log('フォールバックシミュレーション完了 - データ長:', fallbackData.length);
@@ -140,7 +183,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
             annualIncome: formData.annualIncome || 5000000,
             savings: formData.savings || 5000000,
             hasSpouse: formData.hasSpouse || 'いいえ',
-            retirementAge: formData.retirementAge || '65歳'
+            spouseIncome: formData.spouseIncome || 0,
+            retirementAge: formData.retirementAge || '65歳',
+            childrenCount: formData.childrenCount || '0人',
+            childrenAges: formData.childrenAges || ''
           });
           
           console.log('フォールバックシミュレーション完了 - データ長:', fallbackData.length);
@@ -167,7 +213,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
             annualIncome: formData.annualIncome || (simulationRun?.diagnosis_result?.annual_income || 5000000),
             savings: formData.savings || (simulationRun?.diagnosis_result?.savings || 5000000),
             hasSpouse: formData.hasSpouse || 'いいえ',
-            retirementAge: formData.retirementAge || '65歳'
+            spouseIncome: formData.spouseIncome || 0,
+            retirementAge: formData.retirementAge || '65歳',
+            childrenCount: formData.childrenCount || '0人',
+            childrenAges: formData.childrenAges || ''
           };
           
           console.log('ローカルシミュレーション入力:', simulationInput);
@@ -185,7 +234,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({ formData, maxBudget, 
           annualIncome: formData.annualIncome || 5000000,
           savings: formData.savings || 5000000,
           hasSpouse: formData.hasSpouse || 'いいえ',
-          retirementAge: formData.retirementAge || '65歳'
+          spouseIncome: formData.spouseIncome || 0,
+          retirementAge: formData.retirementAge || '65歳',
+          childrenCount: formData.childrenCount || '0人',
+          childrenAges: formData.childrenAges || ''
         });
         
         setSimulationData(exceptionFallbackData);

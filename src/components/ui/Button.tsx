@@ -1,38 +1,33 @@
 import React from 'react';
 
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'text';
+
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  onClick?: () => void;
+  variant?: ButtonVariant;
+  disabled?: boolean;
   fullWidth?: boolean;
   type?: 'button' | 'submit' | 'reset';
-  disabled?: boolean;
-  onClick?: () => void;
   className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
   children,
+  onClick,
   variant = 'primary',
-  size = 'md',
+  disabled = false,
   fullWidth = false,
   type = 'button',
-  disabled = false,
-  onClick,
   className = '',
 }) => {
-  const baseClasses = 'rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'px-4 py-2 rounded-md font-medium transition-all duration-300 focus:outline-none';
   
   const variantClasses = {
-    primary: 'bg-gray-800 text-white hover:bg-gray-900 focus:ring-gray-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500',
-    outline: 'bg-transparent text-gray-800 border border-gray-800 hover:bg-gray-100 focus:ring-gray-500',
-  };
-  
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm',
+    secondary: 'bg-secondary text-white hover:bg-secondary-hover shadow-sm',
+    outline: 'bg-transparent border border-gray-mid text-primary hover:bg-light',
+    text: 'bg-transparent text-primary hover:bg-light p-2',
   };
   
   const widthClass = fullWidth ? 'w-full' : '';
@@ -41,9 +36,9 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       type={type}
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${widthClass} ${disabledClass} ${className}`}
-      disabled={disabled}
       onClick={onClick}
+      disabled={disabled}
+      className={`${baseClasses} ${variantClasses[variant]} ${widthClass} ${disabledClass} ${className}`}
     >
       {children}
     </button>

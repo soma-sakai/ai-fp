@@ -78,15 +78,15 @@ const AssetAllocationChart: React.FC<AssetAllocationChartProps> = ({ totalAssets
       {
         label: '現金資産',
         data: sampledData.map(data => Math.round(data.savings / 10000)),
-        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(80, 80, 80, 0.7)',
+        borderColor: 'rgba(80, 80, 80, 1)',
         borderWidth: 1,
       },
       {
         label: '投資資産',
         data: sampledData.map(data => Math.round(data.investment / 10000)),
-        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(180, 180, 180, 0.7)',
+        borderColor: 'rgba(180, 180, 180, 1)',
         borderWidth: 1,
       }
     ]
@@ -101,7 +101,7 @@ const AssetAllocationChart: React.FC<AssetAllocationChartProps> = ({ totalAssets
         data: sampledData.map(data => 
           data.total > 0 ? Math.round((data.savings / data.total) * 100) : 0
         ),
-        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+        backgroundColor: 'rgba(80, 80, 80, 0.7)',
         barPercentage: 0.6,
       },
       {
@@ -109,7 +109,7 @@ const AssetAllocationChart: React.FC<AssetAllocationChartProps> = ({ totalAssets
         data: sampledData.map(data => 
           data.total > 0 ? Math.round((data.investment / data.total) * 100) : 0
         ),
-        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+        backgroundColor: 'rgba(180, 180, 180, 0.7)',
         barPercentage: 0.6,
       }
     ]

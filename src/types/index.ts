@@ -9,6 +9,13 @@ export interface DiagnosisFormData {
   monthlyMortgagePayment?: number | string;
   otherDebts?: number | string;
   agreeToPrivacyPolicy: boolean;
+  // チャットボットから収集する追加データ
+  hasSpouse?: string;
+  spouseIncome?: number | string;
+  retirementAge?: string;
+  childrenCount?: string;
+  childrenAges?: string;
+  [key: string]: any; // その他のチャットボットデータ用
 }
 
 export interface BudgetDiagnosisResult {

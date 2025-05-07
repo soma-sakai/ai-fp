@@ -40,8 +40,6 @@ interface InvestmentChartProps {
   }[];
 }
 
-type SimulationDataItem = InvestmentChartProps['simulationData'][0];
-
 const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => {
   // 期間選択のために、開始年と終了年を特定
   const years = simulationData.map(d => d.year);
@@ -75,8 +73,8 @@ const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => 
       {
         label: '資産運用残高',
         data: filteredData.map(data => Math.round((data.investment?.balance || 0) / 10000)), // 万円単位に変換
-        borderColor: 'rgb(31, 41, 55)', // gray-800
-        backgroundColor: 'rgba(31, 41, 55, 0.2)',
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
         tension: 0.2,
         fill: true,
         pointRadius: filteredData.map((_, i) => i % 5 === 0 ? 3 : 0), // 5年ごとにポイントを表示
@@ -85,8 +83,8 @@ const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => 
       {
         label: '年間運用益',
         data: filteredData.map(data => Math.round((data.investment?.yield || 0) / 10000)), // 万円単位に変換
-        borderColor: 'rgb(107, 114, 128)', // gray-500
-        backgroundColor: 'rgba(107, 114, 128, 0.2)',
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
         tension: 0.2,
         borderDash: [5, 5],
         fill: false,
@@ -97,8 +95,8 @@ const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => 
       {
         label: '累計運用益',
         data: cumulativeYield.map(value => Math.round(value / 10000)),
-        borderColor: 'rgb(55, 65, 81)', // gray-700
-        backgroundColor: 'rgba(55, 65, 81, 0.2)',
+        borderColor: 'rgb(153, 102, 255)',
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
         tension: 0.2,
         borderDash: [3, 3],
         fill: false,
@@ -199,7 +197,7 @@ const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => 
             key={index}
             className={`px-3 py-1 text-sm rounded-full border 
               ${displayRange.start === period.start && displayRange.end === period.end 
-                ? 'bg-gray-800 text-white border-gray-800' 
+                ? 'bg-blue-500 text-white border-blue-500' 
                 : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
             onClick={() => setDisplayRange({ start: period.start, end: period.end })}
           >
@@ -219,21 +217,21 @@ const InvestmentChart: React.FC<InvestmentChartProps> = ({ simulationData }) => 
     
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-        <div className="bg-gray-100 p-3 rounded">
+        <div className="bg-teal-50 p-3 rounded">
           <p className="text-xs text-gray-500">最終資産残高</p>
-          <p className="font-bold text-gray-800">{Math.round(lastBalance / 10000).toLocaleString()}万円</p>
+          <p className="font-bold text-teal-700">{Math.round(lastBalance / 10000).toLocaleString()}万円</p>
         </div>
-        <div className="bg-gray-100 p-3 rounded">
+        <div className="bg-purple-50 p-3 rounded">
           <p className="text-xs text-gray-500">累計運用益</p>
-          <p className="font-bold text-gray-700">{Math.round(totalYield / 10000).toLocaleString()}万円</p>
+          <p className="font-bold text-purple-700">{Math.round(totalYield / 10000).toLocaleString()}万円</p>
         </div>
-        <div className="bg-gray-100 p-3 rounded">
+        <div className="bg-blue-50 p-3 rounded">
           <p className="text-xs text-gray-500">期間</p>
-          <p className="font-bold text-gray-700">{displayRange.end - displayRange.start + 1}年間</p>
+          <p className="font-bold text-blue-700">{displayRange.end - displayRange.start + 1}年間</p>
         </div>
-        <div className="bg-gray-100 p-3 rounded">
+        <div className="bg-pink-50 p-3 rounded">
           <p className="text-xs text-gray-500">総成長率</p>
-          <p className="font-bold text-gray-700">{Math.round(totalGrowthRate)}%</p>
+          <p className="font-bold text-pink-700">{Math.round(totalGrowthRate)}%</p>
         </div>
       </div>
     );

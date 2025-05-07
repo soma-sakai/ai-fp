@@ -24,26 +24,26 @@ const FPConsultationPage: React.FC = () => {
             
             <ul className="space-y-3 mb-8">
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-2">✓</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-2">✓</span>
                 <span>具体的な住宅ローンプランの提案と比較</span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-2">✓</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-2">✓</span>
                 <span>将来のライフプランを考慮した資金計画</span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-2">✓</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-2">✓</span>
                 <span>税金や補助金制度の活用方法</span>
               </li>
               <li className="flex items-start">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center mr-2">✓</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-2">✓</span>
                 <span>住宅購入のリスク管理と保険の見直し</span>
               </li>
             </ul>
             
             <div className="text-center">
               <a href="https://calendly.com/example/fp-consultation" target="_blank" rel="noopener noreferrer">
-                <Button size="lg">今すぐ相談日程を調整する</Button>
+                <Button className="px-6 py-3 text-lg">今すぐ相談日程を調整する</Button>
               </a>
             </div>
           </div>
@@ -53,7 +53,7 @@ const FPConsultationPage: React.FC = () => {
             
             <ol className="space-y-6 mb-8">
               <li className="flex">
-                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 font-bold">1</span>
+                <span className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 font-bold">1</span>
                 <div>
                   <h3 className="font-medium text-lg">日程調整</h3>
                   <p className="text-gray-600">Calendlyから希望の日時を選択し、簡単な質問にお答えください。</p>
@@ -61,7 +61,7 @@ const FPConsultationPage: React.FC = () => {
               </li>
               
               <li className="flex">
-                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 font-bold">2</span>
+                <span className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 font-bold">2</span>
                 <div>
                   <h3 className="font-medium text-lg">事前準備</h3>
                   <p className="text-gray-600">メールで送られる準備資料に目を通し、必要情報をご用意ください。</p>
@@ -69,7 +69,7 @@ const FPConsultationPage: React.FC = () => {
               </li>
               
               <li className="flex">
-                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 font-bold">3</span>
+                <span className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 font-bold">3</span>
                 <div>
                   <h3 className="font-medium text-lg">オンライン面談（約60分）</h3>
                   <p className="text-gray-600">Zoomで専門家と詳細な住宅購入計画について相談します。</p>
@@ -77,7 +77,7 @@ const FPConsultationPage: React.FC = () => {
               </li>
               
               <li className="flex">
-                <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 font-bold">4</span>
+                <span className="flex-shrink-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mr-3 font-bold">4</span>
                 <div>
                   <h3 className="font-medium text-lg">提案書の受け取り</h3>
                   <p className="text-gray-600">面談後、詳細な提案書を受け取り、具体的な行動計画を進めます。</p>

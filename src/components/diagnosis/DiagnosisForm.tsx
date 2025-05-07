@@ -145,6 +145,7 @@ const DiagnosisForm: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [showRestorationForm, setShowRestorationForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // ステップのインデックスを更新
   useEffect(() => {
@@ -166,19 +167,37 @@ const DiagnosisForm: React.FC = () => {
     }
   }, [currentStep]);
 
-  // フォーム入力処理
+  // handleInputChange関数を分割して、selectとinputに対応する個別の関数を作成
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // formatCurrency関数を追加
+  const formatCurrency = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (!value) return;
+
+    // 数値以外の文字を削除し、整数に変換
+    const numericValue = parseInt(value.replace(/[^\d]/g, ''), 10);
     
-    if (type === 'checkbox') {
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-    
-    // エラーをクリア
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+    if (!isNaN(numericValue)) {
+      // 桁区切りを適用して設定
+      setFormData({
+        ...formData,
+        [name]: numericValue.toLocaleString()
+      });
     }
   };
 
@@ -451,6 +470,37 @@ const DiagnosisForm: React.FC = () => {
       // 保存前にデータをコンソールに出力（デバッグ用）
       console.log('保存するデータ:', userData);
       
+      // チャットボットデータをより詳細に保存
+      if (restFormData.chatbotData) {
+        console.log('チャットボットデータの詳細な処理を行います...');
+        const chatbotData = restFormData.chatbotData;
+        
+        // チャットボットから収集した主要なデータをメインフィールドにも保存
+        if (chatbotData.annualIncome && !userData.annual_income) {
+          userData.annual_income = typeof chatbotData.annualIncome === 'string' 
+            ? parseAmountFromString(chatbotData.annualIncome) 
+            : chatbotData.annualIncome;
+          console.log('チャットボットから年収データを設定:', userData.annual_income);
+        }
+        
+        if (chatbotData.savings && !userData.savings) {
+          userData.savings = typeof chatbotData.savings === 'string' 
+            ? parseAmountFromString(chatbotData.savings) 
+            : chatbotData.savings;
+          console.log('チャットボットから貯蓄額データを設定:', userData.savings);
+        }
+        
+        if (chatbotData.hasSpouse) {
+          userData.has_spouse = chatbotData.hasSpouse;
+        }
+        
+        if (chatbotData.spouseIncome) {
+          userData.spouse_income = typeof chatbotData.spouseIncome === 'string'
+            ? parseAmountFromString(chatbotData.spouseIncome)
+            : chatbotData.spouseIncome;
+        }
+      }
+      
       // 保存関数を呼び出し
       const { data, error } = await saveData('diagnosis_results', userData);
       
@@ -487,18 +537,34 @@ const DiagnosisForm: React.FC = () => {
       console.log('チャットボットから受け取ったデータ:', chatbotData);
       console.log('現在のフォームデータ:', formData);
       
-      // 入力データに必要なフィールドを統合
-      const budgetInputData = {
+      // フォームデータにチャットボットデータを統合する（シミュレーション用に重要）
+      const updatedFormData = {
         ...formData,
         ...chatbotData,
+        // チャットボットから収集した主要データを明示的に設定
+        age: chatbotData.age || formData.age || "30",
+        annualIncome: chatbotData.annualIncome || formData.annualIncome || "5000000",
+        savings: chatbotData.savings || formData.savings || "5000000",
+        hasSpouse: chatbotData.hasSpouse || formData.hasSpouse || "いいえ",
+        spouseIncome: chatbotData.spouseIncome || formData.spouseIncome || "0",
+        retirementAge: chatbotData.retirementAge || formData.retirementAge || "65歳",
+        chatbotData // チャットボットデータ全体も保存
+      };
+      
+      setFormData(updatedFormData);
+      console.log('更新後のフォームデータ:', updatedFormData);
+      
+      // 入力データに必要なフィールドを統合
+      const budgetInputData = {
+        ...updatedFormData,
         // 文字列の数値変換
-        age: Number(formData.age || chatbotData.age || 30),
-        familySize: Number(formData.familySize || chatbotData.familySize || 1),
-        annualIncome: chatbotData.annualIncome || formData.annualIncome || '5000000',
-        savings: chatbotData.savings || formData.savings || '5000000',
-        mortgageLoanBalance: formData.mortgageLoanBalance || undefined,
-        monthlyMortgagePayment: formData.monthlyMortgagePayment || undefined,
-        otherDebts: formData.otherDebts || undefined,
+        age: Number(updatedFormData.age || 30),
+        familySize: Number(updatedFormData.familySize || 1),
+        annualIncome: updatedFormData.annualIncome || '5000000',
+        savings: updatedFormData.savings || '5000000',
+        mortgageLoanBalance: updatedFormData.mortgageLoanBalance || undefined,
+        monthlyMortgagePayment: updatedFormData.monthlyMortgagePayment || undefined,
+        otherDebts: updatedFormData.otherDebts || undefined,
       };
       
       console.log('診断に使用する統合データ:', budgetInputData);
@@ -548,32 +614,48 @@ const DiagnosisForm: React.FC = () => {
   };
 
   // PDF ダウンロード処理
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (diagnosisResult && formData) {
-      const numericFormData = {
-        ...formData,
-        age: Number(formData.age || 0),
-        familySize: Number(formData.familySize || 0),
-        annualIncome: Number(formData.annualIncome || 0),
-        savings: Number(formData.savings || 0),
-        mortgageLoanBalance: formData.mortgageLoanBalance ? Number(formData.mortgageLoanBalance) : 0,
-        monthlyMortgagePayment: formData.monthlyMortgagePayment ? Number(formData.monthlyMortgagePayment) : 0,
-        otherDebts: formData.otherDebts ? Number(formData.otherDebts) : 0,
-      };
+      try {
+        // UI上の操作をブロックするローディング表示など
+        setIsLoading(true);
+        
+        const numericFormData = {
+          ...formData,
+          age: Number(formData.age || 0),
+          familySize: Number(formData.familySize || 0),
+          annualIncome: Number(formData.annualIncome || 0),
+          savings: Number(formData.savings || 0),
+          mortgageLoanBalance: formData.mortgageLoanBalance ? Number(formData.mortgageLoanBalance) : 0,
+          monthlyMortgagePayment: formData.monthlyMortgagePayment ? Number(formData.monthlyMortgagePayment) : 0,
+          otherDebts: formData.otherDebts ? Number(formData.otherDebts) : 0,
+        };
 
-      const pdfBlob = generatePDF(numericFormData, diagnosisResult);
-      const url = URL.createObjectURL(pdfBlob);
-      
-      // ダウンロードリンクを作成
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `住宅予算診断結果_${formData.name}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // クリーンアップ
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+        // 非同期処理として実行
+        const pdfBlob = await generatePDF(numericFormData, diagnosisResult);
+        
+        // PDFをダウンロードさせる処理
+        const url = URL.createObjectURL(pdfBlob);
+        
+        // ダウンロードリンクを作成
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `住宅予算診断結果_${formData.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // クリーンアップ
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+        }, 100);
+        
+      } catch (error) {
+        console.error('PDFのダウンロードに失敗しました:', error);
+        alert('PDFの生成中にエラーが発生しました。もう一度お試しください。');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -607,7 +689,7 @@ const DiagnosisForm: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
       <ProgressBar steps={stepLabels} currentStep={stepIndex} />
       
       {currentStep === DiagnosisStep.PRIVACY_POLICY && (
@@ -642,50 +724,132 @@ const DiagnosisForm: React.FC = () => {
       )}
       
       {currentStep === DiagnosisStep.BASIC_INFO && (
-        <BasicInfoStep
-          formData={{
-            name: formData.name,
-            email: formData.email
-          }}
-          onChange={handleInputChange}
-          onNext={handleBasicInfoNext}
-          onBack={handleBasicInfoBack}
-          errors={errors}
-        />
+        <div>
+          <h2 className="text-xl font-bold mb-4">基本情報入力</h2>
+          <p className="text-gray-600 mb-6">あなたの基本的な情報を入力してください。</p>
+          
+          <form onSubmit={handleBasicInfoNext} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">年齢</label>
+              <select
+                name="age"
+                value={formData.age}
+                onChange={handleSelectChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                required
+              >
+                <option value="">選択してください</option>
+                {Array.from({ length: 50 }, (_, i) => i + 20).map(age => (
+                  <option key={age} value={age}>{age}歳</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">年収</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  type="text"
+                  name="annualIncome"
+                  value={formData.annualIncome}
+                  onChange={handleInputChange}
+                  onBlur={formatCurrency}
+                  placeholder="5,000,000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-primary"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500">円</span>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">例：5,000,000（半角数字）</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">貯蓄額</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  type="text"
+                  name="savings"
+                  value={formData.savings}
+                  onChange={handleInputChange}
+                  onBlur={formatCurrency}
+                  placeholder="10,000,000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-primary"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500">円</span>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">例：10,000,000（半角数字）</p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">頭金</label>
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <input
+                  type="text"
+                  name="downPayment"
+                  value={formData.downPayment}
+                  onChange={handleInputChange}
+                  onBlur={formatCurrency}
+                  placeholder="5,000,000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-primary"
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500">円</span>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">例：5,000,000（半角数字）</p>
+            </div>
+            
+            <div className="pt-4">
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                disabled={isProcessing}
+              >
+                {isProcessing ? '処理中...' : '次へ進む'}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
       
       {currentStep === DiagnosisStep.CHATBOT && (
-        <ChatbotStep
-          userName={formData.name || 'ゲスト'}
-          userId={userId}
-          onComplete={(chatbotData) => handleChatbotNext(chatbotData)}
-          onBack={handleChatbotBack}
-        />
+        <div>
+          <h2 className="text-xl font-bold mb-4">詳細情報</h2>
+          <p className="text-gray-600 mb-6">AIチャットボットが詳細な情報をお伺いします。</p>
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <ChatbotStep
+              userName={formData.name || 'ゲスト'}
+              userId={userId}
+              onComplete={handleChatbotNext} 
+              onBack={handleChatbotBack}
+            />
+          </div>
+        </div>
       )}
       
       {currentStep === DiagnosisStep.RESULT && diagnosisResult && (
-        <ResultStep
-          formData={{
-            ...formData,
-            age: Number(formData.age || 0),
-            familySize: Number(formData.familySize || 0),
-            annualIncome: Number(formData.annualIncome || 0),
-            savings: Number(formData.savings || 0),
-            mortgageLoanBalance: formData.mortgageLoanBalance ? Number(formData.mortgageLoanBalance) : undefined,
-            monthlyMortgagePayment: formData.monthlyMortgagePayment ? Number(formData.monthlyMortgagePayment) : undefined,
-            otherDebts: formData.otherDebts ? Number(formData.otherDebts) : undefined,
-          }}
+        <ResultStep 
+          formData={formData}
           result={diagnosisResult}
           onDownloadPdf={handleDownloadPdf}
           onScheduleMeeting={handleScheduleMeeting}
           onRestart={handleRestart}
+          isLoading={isProcessing}
         />
       )}
       
-      {isProcessing && (
+      {isProcessing && currentStep !== DiagnosisStep.CHATBOT && currentStep !== DiagnosisStep.RESULT && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <p className="text-lg">診断結果を計算中...</p>
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-[80%] text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg font-medium">診断結果を計算中...</p>
+            <p className="text-sm text-gray-500 mt-2">しばらくお待ちください</p>
           </div>
         </div>
       )}

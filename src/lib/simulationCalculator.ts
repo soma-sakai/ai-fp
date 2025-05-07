@@ -239,8 +239,9 @@ function calculateInvestment(
   const annualContribution = monthlyContribution * 12;
   balance += annualContribution;
   
-  // 運用利回り計算（複利で計算）
-  const yieldAmount = balance * (annualYield / 100);
+  // 運用利回り計算（複利で計算）- 初期投資と積立がどちらもない場合は運用益も0
+  const hasInvestment = isFirstYear ? (initialInvestment > 0 || monthlyContribution > 0) : (balance > 0 || monthlyContribution > 0);
+  const yieldAmount = hasInvestment ? balance * (annualYield / 100) : 0;
   balance += yieldAmount;
   
   // 取り崩し
@@ -315,27 +316,27 @@ export function generateLifetimeSimulation(inputs: SimulationInputs): YearlyBala
   const initialInvestment = inputs.initialInvestment ? 
     (typeof inputs.initialInvestment === 'string' ? 
       parseAmountFromString(inputs.initialInvestment as string) : 
-      inputs.initialInvestment) : 1000000; // デフォルト100万円に設定（以前は200万円）
+      inputs.initialInvestment) : 0; // デフォルト0円に設定
   
   const monthlyContribution = inputs.monthlyContribution ? 
     (typeof inputs.monthlyContribution === 'string' ? 
       parseAmountFromString(inputs.monthlyContribution as string) : 
-      inputs.monthlyContribution) : 20000; // デフォルト月2万円に設定（以前は5万円）
+      inputs.monthlyContribution) : 0; // デフォルト0円に設定
   
   const investmentYield = inputs.investmentYield ? 
     (typeof inputs.investmentYield === 'string' ? 
       parseFloat(inputs.investmentYield as string) : 
-      inputs.investmentYield) : 2.0; // デフォルト2.0%のリターン（以前は4.0%）
+      inputs.investmentYield) : 1.0; // デフォルト1.0%のリターン
   
   // インフレ率
   const inflationRate = inputs.inflationRate ? 
     (typeof inputs.inflationRate === 'string' ? 
-      parseFloat(inputs.inflationRate) : inputs.inflationRate) : 0.01; // デフォルト1.0%
+      parseFloat(inputs.inflationRate) : inputs.inflationRate) : 0.0075; // デフォルト0.75%
       
   // 昇給率
   const raiseRate = inputs.raiseRate ? 
     (typeof inputs.raiseRate === 'string' ? 
-      parseFloat(inputs.raiseRate) : inputs.raiseRate) : 0.02; // デフォルト2.0%
+      parseFloat(inputs.raiseRate) : inputs.raiseRate) : 0.0125; // デフォルト1.25%
   
   // 貯蓄残高の初期値
   let currentSavings = typeof inputs.savings === 'string' ? 
@@ -410,7 +411,7 @@ export function generateLifetimeSimulation(inputs: SimulationInputs): YearlyBala
     
     // 支出計算
     // 1. 基本生活費（収入の一定割合 + インフレ調整）
-    const baseExpenseRate = age < retirementAge ? 0.5 : 0.7; // 働いている間は収入の50%、退職後は70%
+    const baseExpenseRate = age < retirementAge ? 0.45 : 0.65; // 働いている間は収入の45%、退職後は65%
     let livingExpense = income * baseExpenseRate * Math.pow(1 + inflationRate, i);
     
     // 家族構成に応じて生活費を調整
@@ -445,13 +446,13 @@ export function generateLifetimeSimulation(inputs: SimulationInputs): YearlyBala
     const insuranceExpense = 120000 * Math.pow(1 + inflationRate, i); // 年間12万円と仮定
     
     // 5. 税金（簡易計算）
-    const taxRate = income > 10000000 ? 0.33 :
-                   income > 6000000 ? 0.23 :
-                   income > 3300000 ? 0.2 : 0.1;
+    const taxRate = income > 10000000 ? 0.30 :
+                   income > 6000000 ? 0.20 :
+                   income > 3300000 ? 0.15 : 0.10;
     const taxExpense = income * taxRate;
     
     // 6. その他の支出
-    const otherExpense = income * 0.1; // 収入の10%
+    const otherExpense = income * 0.08; // 収入の8%
     
     // 7. イベント支出/収入
     const events = inputs.events || {};
@@ -674,6 +675,11 @@ export async function runSimulationFromDiagnosisResult(diagnosisResultId: string
           console.log('    - チャットボット年収:', chatbotData.annualIncome);
           console.log('    - チャットボット貯蓄額:', chatbotData.savings);
           console.log('    - チャットボット年齢:', chatbotData.age);
+          console.log('    - 配偶者の有無:', chatbotData.hasSpouse);
+          console.log('    - 配偶者の収入:', chatbotData.spouseIncome);
+          console.log('    - 退職年齢:', chatbotData.retirementAge);
+          console.log('    - 子供の人数:', chatbotData.childrenCount);
+          console.log('    - 子供の年齢:', chatbotData.childrenAges);
         }
         
         if (diagnosisData.additional_data.processed_data) {
